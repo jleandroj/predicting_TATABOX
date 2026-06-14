@@ -39,8 +39,14 @@ RULE = "#E6E4DE"
 SHADOW_C = "#3A3A48"
 
 NPG = [
-    "#E64B35", "#4DBBD5", "#00A087", "#3C5488",
-    "#F39B7F", "#8491B4", "#91D1C2", "#DC0000",
+    "#E64B35",
+    "#4DBBD5",
+    "#00A087",
+    "#3C5488",
+    "#F39B7F",
+    "#8491B4",
+    "#91D1C2",
+    "#DC0000",
 ]
 
 TECHNIQUES = ["sft", "dpo-sigmoid", "dpo-ipo", "dpo-lora"]
@@ -51,9 +57,9 @@ TECH_LABEL = {
     "dpo-ipo": "DPO-IPO",
     "dpo-lora": "DPO-LoRA",
 }
-ACCENT = TECH_COLOR["dpo-sigmoid"]   # saturates to 1.0 at k >= 5
+ACCENT = TECH_COLOR["dpo-sigmoid"]  # saturates to 1.0 at k >= 5
 CALM = "#C8CACE"
-BACKBONE = 60_480                    # non-embedding parameters, fixed across all k
+BACKBONE = 60_480  # non-embedding parameters, fixed across all k
 
 RESULTS = Path("results/tokenizer_technique_ablation.csv")
 OUT = Path("results")
@@ -70,9 +76,7 @@ def pivot(rows: list[dict[str, str]], field: str) -> dict[str, list[float]]:
     ks = sorted({int(r["k"]) for r in rows})
     return {
         t: [
-            float(
-                next(r for r in rows if int(r["k"]) == k and r["technique"] == t)[field]
-            )
+            float(next(r for r in rows if int(r["k"]) == k and r["technique"] == t)[field])
             for k in ks
         ]
         for t in TECHNIQUES
@@ -93,21 +97,33 @@ def strip(ax: Any, *, left: bool = False) -> None:
 
 
 def fig_header(fig: Any, title: str, subtitle: str) -> None:
-    fig.text(0.5, 0.97, title, ha="center", va="top",
-             fontsize=13, fontweight="bold", color=INK)
+    fig.text(0.5, 0.97, title, ha="center", va="top", fontsize=13, fontweight="bold", color=INK)
     fig.text(0.5, 0.92, subtitle, ha="center", va="top", fontsize=8, color=GREY)
 
 
 def soft_shadow(ax: Any) -> None:
     """13-layer blur-like drop shadow; call before setting final ax limits."""
     for i in range(13):
-        ax.add_patch(mpatches.Circle(
-            (0.025, -0.045),
-            1.0 + i * 0.017,
-            color=SHADOW_C,
-            alpha=0.005,
-            zorder=1,
-        ))
+        ax.add_patch(
+            mpatches.Circle(
+                (0.025, -0.045),
+                1.0 + i * 0.017,
+                color=SHADOW_C,
+                alpha=0.005,
+                zorder=1,
+            )
+        )
+
+
+def save(fig: Any, stem: str) -> Path:
+    """Save figure as both PDF (print quality) and PNG (web/README embed)."""
+    pdf = OUT / f"{stem}.pdf"
+    png = OUT / f"{stem}.png"
+    fig.savefig(pdf, bbox_inches="tight", facecolor=BG)
+    fig.savefig(png, bbox_inches="tight", facecolor=BG, dpi=180)
+    plt.close(fig)
+    print(f"Wrote {pdf}  +  {png}")
+    return pdf
 
 
 # ── Figure 1: Performance line chart ──────────────────────────────────────────
@@ -124,14 +140,14 @@ def fig1_performance(rows: list[dict[str, str]]) -> Path:
 
     # Baseline
     ax.axhline(0.5, color=GREY, lw=0.8, ls="--", zorder=1)
-    ax.text(6.12, 0.5, "baseline  0.50", va="center", ha="left",
-            fontsize=6.5, color=GREY)
+    ax.text(6.12, 0.5, "baseline  0.50", va="center", ha="left", fontsize=6.5, color=GREY)
 
     # Lines: one per technique; DPO-sigmoid highlighted
     for t in TECHNIQUES:
         hero = t == "dpo-sigmoid"
         ax.plot(
-            ks, mr[t],
+            ks,
+            mr[t],
             color=TECH_COLOR[t],
             lw=2.5 if hero else 1.4,
             zorder=4 if hero else 2,
@@ -142,8 +158,7 @@ def fig1_performance(rows: list[dict[str, str]]) -> Path:
 
     # Regime labels
     for xc, txt in [(1.5, "coarse\n(k = 1–2)"), (5.5, "fine\n(k = 5–6)")]:
-        ax.text(xc, 1.12, txt, ha="center", va="bottom",
-                fontsize=7.5, color=GREY, style="italic")
+        ax.text(xc, 1.12, txt, ha="center", va="bottom", fontsize=7.5, color=GREY, style="italic")
 
     # k=6 callout: single-token effect
     ax.annotate(
@@ -151,7 +166,9 @@ def fig1_performance(rows: list[dict[str, str]]) -> Path:
         xy=(6, mr["sft"][5]),
         xytext=(4.85, 0.67),
         arrowprops={"arrowstyle": "->", "color": GREY, "lw": 0.7},
-        fontsize=7, color=GREY, ha="center",
+        fontsize=7,
+        color=GREY,
+        ha="center",
     )
 
     # k=3-4 LoRA callout
@@ -160,12 +177,21 @@ def fig1_performance(rows: list[dict[str, str]]) -> Path:
         xy=(3, mr["dpo-sigmoid"][2]),
         xytext=(2.15, 0.22),
         arrowprops={"arrowstyle": "->", "color": GREY, "lw": 0.7},
-        fontsize=7, color=GREY, ha="center",
+        fontsize=7,
+        color=GREY,
+        ha="center",
     )
 
     handles = [mpatches.Patch(color=TECH_COLOR[t], label=TECH_LABEL[t]) for t in TECHNIQUES]
-    ax.legend(handles=handles, frameon=False, fontsize=8, labelcolor=INK,
-              handlelength=1.2, loc="upper left", ncol=2)
+    ax.legend(
+        handles=handles,
+        frameon=False,
+        fontsize=8,
+        labelcolor=INK,
+        handlelength=1.2,
+        loc="upper left",
+        ncol=2,
+    )
 
     ax.set_xlim(0.5, 7.0)
     ax.set_ylim(-0.07, 1.25)
@@ -185,11 +211,7 @@ def fig1_performance(rows: list[dict[str, str]]) -> Path:
         "  ·  DGX Spark GB10  ·  sft_epochs = dpo_epochs = 100",
     )
     fig.subplots_adjust(top=0.84, bottom=0.13, left=0.11, right=0.86)
-    out = OUT / "fig1_performance.pdf"
-    fig.savefig(out, bbox_inches="tight", facecolor=BG)
-    plt.close(fig)
-    print(f"Wrote {out}")
-    return out
+    return save(fig, "fig1_performance")
 
 
 # ── Figure 2: Parameter composition donuts ────────────────────────────────────
@@ -216,10 +238,18 @@ def _draw_donut(ax: Any, k: int, total: int) -> None:
     ax.add_patch(mpatches.Circle((0, 0), 0.49, color=BG, zorder=3))
 
     # Center labels
-    ax.text(0, 0.15, f"k = {k}", ha="center", va="center",
-            fontsize=9, fontweight="bold", color=INK, zorder=4)
-    ax.text(0, -0.18, f"{total:,}", ha="center", va="center",
-            fontsize=7, color=GREY, zorder=4)
+    ax.text(
+        0,
+        0.15,
+        f"k = {k}",
+        ha="center",
+        va="center",
+        fontsize=9,
+        fontweight="bold",
+        color=INK,
+        zorder=4,
+    )
+    ax.text(0, -0.18, f"{total:,}", ha="center", va="center", fontsize=7, color=GREY, zorder=4)
 
     # Percent labels inside slices (only if slice is wide enough to fit)
     # Matplotlib pie: startangle=90, counterclockwise (increasing math angle).
@@ -232,8 +262,12 @@ def _draw_donut(ax: Any, k: int, total: int) -> None:
             0.74 * math.cos(mid),
             0.74 * math.sin(mid),
             f"{frac:.0%}",
-            ha="center", va="center",
-            fontsize=6.5, fontweight="bold", color="white", zorder=5,
+            ha="center",
+            va="center",
+            fontsize=6.5,
+            fontweight="bold",
+            color="white",
+            zorder=5,
         )
 
     ax.set_xlim(-1.5, 1.5)
@@ -250,16 +284,22 @@ def fig2_param_scale(rows: list[dict[str, str]]) -> Path:
     sft = {int(r["k"]): r for r in rows if r["technique"] == "sft"}
 
     fig, axes = plt.subplots(1, 6, figsize=(12, 3.8), facecolor=BG)
-    for ax, k in zip(axes, ks):
+    for ax, k in zip(axes, ks, strict=False):
         _draw_donut(ax, k, int(sft[k]["total_params"]))
 
     legend_handles = [
         mpatches.Patch(color=NPG[0], label="Embedding table  (vocab_size × 48 params)"),
         mpatches.Patch(color=NPG[1], label=f"Transformer backbone  ({BACKBONE:,} params, fixed)"),
     ]
-    fig.legend(handles=legend_handles, loc="lower center", ncol=2,
-               frameon=False, fontsize=8.5, labelcolor=INK,
-               bbox_to_anchor=(0.5, -0.04))
+    fig.legend(
+        handles=legend_handles,
+        loc="lower center",
+        ncol=2,
+        frameon=False,
+        fontsize=8.5,
+        labelcolor=INK,
+        bbox_to_anchor=(0.5, -0.04),
+    )
 
     fig_header(
         fig,
@@ -268,25 +308,16 @@ def fig2_param_scale(rows: list[dict[str, str]]) -> Path:
         "  ·  n_embd = 48, n_layer = 2, n_head = 2",
     )
     fig.subplots_adjust(top=0.78, bottom=0.15, left=0.01, right=0.99, wspace=0.06)
-    out = OUT / "fig2_param_scale.pdf"
-    fig.savefig(out, bbox_inches="tight", facecolor=BG)
-    plt.close(fig)
-    print(f"Wrote {out}")
-    return out
+    return save(fig, "fig2_param_scale")
 
 
 # ── Figure 3: Horizontal bar ranking ──────────────────────────────────────────
 def fig3_ranking(rows: list[dict[str, str]]) -> Path:
-    items = sorted(
-        [
-            {
-                "label": f"k = {r['k']}  ·  {TECH_LABEL[r['technique']]}",
-                "value": float(r["motif_rate"]),
-            }
-            for r in rows
-        ],
-        key=lambda d: d["value"],
-    )   # ascending -> top of chart = best
+    # tuple[str, float] avoids mypy's dict[str, object] key-sort errors
+    items: list[tuple[str, float]] = sorted(
+        [(f"k = {r['k']}  ·  {TECH_LABEL[r['technique']]}", float(r["motif_rate"])) for r in rows],
+        key=lambda d: d[1],
+    )  # ascending -> top of chart = best
 
     n = len(items)
     ys = list(range(n))
@@ -294,13 +325,15 @@ def fig3_ranking(rows: list[dict[str, str]]) -> Path:
     fig, ax = plt.subplots(figsize=(7, 8.5), facecolor=BG)
     ax.set_facecolor(BG)
 
-    for i, d in enumerate(items):
+    for i, (label, value) in enumerate(items):
         best = i == n - 1
-        ax.barh(ys[i], d["value"], color=ACCENT if best else CALM,
-                height=0.62, zorder=2)
+        ax.barh(ys[i], value, color=ACCENT if best else CALM, height=0.62, zorder=2)
         ax.text(
-            d["value"] + 0.013, ys[i], f"{d['value']:.2f}",
-            va="center", ha="left",
+            value + 0.013,
+            ys[i],
+            f"{value:.2f}",
+            va="center",
+            ha="left",
             fontsize=7.5,
             color=INK if best else GREY,
             fontweight="bold" if best else "normal",
@@ -312,11 +345,10 @@ def fig3_ranking(rows: list[dict[str, str]]) -> Path:
 
     # Baseline marker
     ax.axvline(0.5, color=GREY, lw=0.8, ls="--", zorder=1)
-    ax.text(0.5, -1.8, "baseline  0.50",
-            ha="center", va="top", fontsize=7, color=GREY)
+    ax.text(0.5, -1.8, "baseline  0.50", ha="center", va="top", fontsize=7, color=GREY)
 
     ax.set_yticks(ys)
-    ax.set_yticklabels([d["label"] for d in items], fontsize=7.8, color=INK)
+    ax.set_yticklabels([label for label, _ in items], fontsize=7.8, color=INK)
     ax.set_xlim(0, 1.22)
     ax.set_xticks([0, 0.25, 0.5, 0.75, 1.0])
     ax.set_xticklabels(["0%", "25%", "50%", "75%", "100%"], fontsize=8, color=GREY)
@@ -329,11 +361,7 @@ def fig3_ranking(rows: list[dict[str, str]]) -> Path:
         "Sorted ascending (top = best)  ·  dashed = 0.50 baseline  ·  top bar highlighted",
     )
     fig.subplots_adjust(top=0.88, bottom=0.05, left=0.35, right=0.93)
-    out = OUT / "fig3_ranking.pdf"
-    fig.savefig(out, bbox_inches="tight", facecolor=BG)
-    plt.close(fig)
-    print(f"Wrote {out}")
-    return out
+    return save(fig, "fig3_ranking")
 
 
 # ── Figure 4: Heatmap (k x technique) ─────────────────────────────────────────
@@ -360,8 +388,16 @@ def fig4_heatmap(rows: list[dict[str, str]]) -> Path:
         for ci in range(len(ks)):
             val = mr[t][ci]
             fg = "white" if (val < 0.18 or val > 0.82) else INK
-            ax.text(ci, ri, f"{val:.2f}", ha="center", va="center",
-                    fontsize=9.5, fontweight="bold", color=fg)
+            ax.text(
+                ci,
+                ri,
+                f"{val:.2f}",
+                ha="center",
+                va="center",
+                fontsize=9.5,
+                fontweight="bold",
+                color=fg,
+            )
 
     # White grid lines between cells
     for x in range(len(ks) - 1):
@@ -393,11 +429,7 @@ def fig4_heatmap(rows: list[dict[str, str]]) -> Path:
         "Blue = below baseline · Red = above baseline · White center = 0.50",
     )
     fig.subplots_adjust(top=0.75, bottom=0.04, left=0.14, right=0.90)
-    out = OUT / "fig4_heatmap.pdf"
-    fig.savefig(out, bbox_inches="tight", facecolor=BG)
-    plt.close(fig)
-    print(f"Wrote {out}")
-    return out
+    return save(fig, "fig4_heatmap")
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────
