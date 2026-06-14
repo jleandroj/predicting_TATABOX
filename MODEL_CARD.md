@@ -22,8 +22,7 @@ GPT2Config(
 )
 ```
 
-`n_embd=48, n_layer=2, n_head=2` is ~2x [bio-ml-lab](https://github.com/jleandroj/bio-ml-lab)'s
-Week 8 from-scratch causal LM (`n_embd=32`, ~30K params).
+`n_embd=48, n_layer=2, n_head=2` — ~60K–257K total parameters depending on k.
 
 ## Tokenizer axis: k-mer size
 
@@ -44,7 +43,7 @@ size:
 | 5 | 1,029                | 109,872 |
 | 6 | 4,101                | 257,328 |
 
-`k=3` is the "~64K, ~2x Week 8" reference point. At `k=6`, the 6-base TATA-box
+`k=3` gives ~64K total parameters. At `k=6`, the 6-base TATA-box
 motif (`TATAAA`) collapses into a **single vocabulary token** -- a
 qualitatively different regime than `k<6`, where the model must generate the
 motif as a sequence of multiple tokens.
@@ -74,7 +73,7 @@ are guaranteed not to contain it. All four branches share `seed`, so
 before/after comparison (same starting weights, same sampling seed, only the
 post-training step differs).
 
-## Gotchas (generalized from bio-ml-lab Week 8 to k=1..6 and to LoRA)
+## Gotchas (k=1..6 and LoRA)
 
 - **Tokenizer must have no post-processor.** `trl.DPOTrainer` requires
   `tokenize(prompt)` to be an exact prefix of `tokenize(prompt + chosen)` /
@@ -114,9 +113,7 @@ Each cell also logs a JSON record (params + metrics + git SHA + timestamp) to
 
 ## Results
 
-Full 24-cell run on the **NVIDIA DGX Spark (GB10)**, 2026-06-14.
-Config: `n_sft=200, n_pref=100, n_eval=50, sft_epochs=100, dpo_epochs=100`, `seed=0`.
-Total wall-clock time: ~6.5 minutes.
+Full 24-cell run. Config: `n_sft=200, n_pref=100, n_eval=50, sft_epochs=100, dpo_epochs=100`, `seed=0`.
 
 | k | technique | vocab_size | total_params | trainable | trainable% | motif_rate | Δ vs baseline | time (s) |
 |---|-----------|------------|-------------|-----------|------------|------------|---------------|----------|
@@ -188,5 +185,4 @@ tokenizer resolution, not the post-training recipe, is the key lever.
 **Engineering note — vocab-table dominance:** `total_params` grows from 60,912
 (k=1) to 257,328 (k=6) with all non-embedding parameters held constant at
 60,480. The analytic formula `60,480 + vocab_size(k) × 48` matches every
-measured cell, confirming the Week 3 Transformers note's `4^k` claim
-empirically.
+measured cell, confirming the `4^k` growth empirically.

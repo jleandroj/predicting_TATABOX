@@ -4,11 +4,7 @@ A tokenizer x post-training technique ablation grid on a **from-scratch GPT-2
 causal LM** that learns to generate synthetic DNA sequences containing a
 **TATA-box** promoter motif (`TATAAA`).
 
-This is a standalone follow-up to [`bio-ml-lab`](https://github.com/jleandroj/bio-ml-lab)'s
-Phase 2 post-training quartet (full fine-tune -> LoRA -> QLoRA -> DPO, all on a
-tiny BERT-mini *classifier*). That project closed with a from-scratch causal LM
-trained via SFT + DPO at ~30K parameters (Week 8). This repo goes one step
-further along two axes at once:
+The experiment sweeps two axes simultaneously:
 
 - **Tokenizer axis**: the *same* architecture is trained from scratch with
   k-mer tokenizers for every `k` in `1..6`. Vocabulary size is `4**k + 5`
@@ -45,7 +41,7 @@ scripts/
   plot_ablation.py   # CSV -> results/*.png (quick diagnostic plots)
   plot_publication.py  # CSV -> results/fig{1..4}.pdf (Nature/Science visual language)
 tests/           # pytest, unit + tiny end-to-end smoke tests (k=1 and k=6 edge cases)
-results/         # committed CSV + plots from a full grid run on DGX Spark (2026-06-14)
+results/         # committed CSV + plots from the full grid run
 runs/            # per-run JSON provenance (params, metrics, git SHA, timestamp)
 logs/            # terminal output captures (gitignored; use tee convention below)
 ```
@@ -86,9 +82,7 @@ it, those tests are skipped via `pytest.importorskip`.
 
 ## Results
 
-Full 24-cell run on **NVIDIA DGX Spark (GB10)**, 2026-06-14.
-`sft_epochs = 100, dpo_epochs = 100, n_sft = 200, n_pref = 100, n_eval = 50`.
-Total wall-clock: ~6.5 minutes.
+Full 24-cell run. Config: `sft_epochs = 100, dpo_epochs = 100, n_sft = 200, n_pref = 100, n_eval = 50`.
 
 **Key finding: k (tokenizer resolution) dominates over post-training technique.**
 
