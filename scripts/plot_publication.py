@@ -426,7 +426,7 @@ def fig4_heatmap(rows: list[dict[str, str]]) -> Path:
     fig_header(
         fig,
         "TATA-box motif rate across the full k × technique grid",
-        "Blue = below baseline · Red = above baseline · White center = 0.50",
+        "",
     )
     fig.subplots_adjust(top=0.75, bottom=0.04, left=0.14, right=0.90)
     return save(fig, "fig4_heatmap")
