@@ -1,0 +1,83 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "predicting-tatabox"
+version = "0.1.0"
+description = "Tokenizer (k-mer 1..6) x post-training technique ablation on a from-scratch causal LM for TATA-box generation."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Leandro" }]
+license = { text = "MIT" }
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.6",
+  "mypy>=1.10",
+  "pre-commit>=3.7",
+]
+# Causal-LM + SFT/DPO/LoRA stack. CPU-only torch keeps it small; a CUDA GPU
+# (e.g. DGX Spark) makes the full 24-cell ablation grid run in minutes.
+ml = [
+  "torch>=2.2",
+  "transformers>=4.40",
+  "accelerate>=1.1",
+  "peft>=0.11",
+  "trl>=0.12",
+  "datasets>=2.18",
+]
+# Plotting the ablation results.
+viz = [
+  "matplotlib>=3.8",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/predicting_tatabox"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+target-version = "py310"
+
+[tool.ruff.lint]
+# E/F: pycodestyle+pyflakes, I: isort, UP: pyupgrade, B: bugbear, SIM: simplify
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+files = ["src", "tests"]
+warn_unused_configs = true
+
+# Third-party ML libs ship without type stubs.
+[[tool.mypy.overrides]]
+module = [
+  "torch.*",
+  "transformers.*",
+  "tokenizers.*",
+  "matplotlib.*",
+  "peft.*",
+  "trl.*",
+  "datasets.*",
+]
+ignore_missing_imports = true
+
+# Glue code that wraps the (untyped) tokenizers / HF Trainer / PEFT / trl:
+# keep our logic typed, but relax the rules that only fire because those
+# libs are untyped.
+[[tool.mypy.overrides]]
+module = [
+  "predicting_tatabox.tokenizer",
+  "predicting_tatabox.dpo",
+  "predicting_tatabox.ablation",
+]
+disallow_untyped_calls = false
+disallow_subclassing_any = false
+warn_return_any = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
