@@ -26,6 +26,10 @@ checkpoints/
 runs/*
 !runs/.gitkeep
 
+# Terminal output logs (capture with: uv run python scripts/run_ablation.py 2>&1 | tee logs/$(date +%Y%m%d-%H%M%S)-run_ablation.log)
+logs/*
+!logs/.gitkeep
+
 # OS / editor
 .DS_Store
 .idea/
