@@ -115,7 +115,7 @@ Each cell also logs a JSON record (params + metrics + git SHA + timestamp) to
 ## Results
 
 _Pending a full run of `scripts/run_ablation.py` (24 cells, default config:
-`n_sft=200, n_pref=100, n_eval=50, sft_epochs=60, dpo_epochs=20`) on the DGX
+`n_sft=200, n_pref=100, n_eval=50, sft_epochs=100, dpo_epochs=100`) on the DGX
 Spark. This section will report, per cell: `vocab_size`, `total_params`,
 `trainable_params`/`trainable_pct`, `motif_rate` vs `baseline_motif_rate=0.5`,
 and `train_seconds`, plus the two plots from `scripts/plot_ablation.py`

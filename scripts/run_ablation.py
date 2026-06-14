@@ -42,8 +42,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--n-sft", type=int, default=200, help="SFT corpus size.")
     parser.add_argument("--n-pref", type=int, default=100, help="Preference pairs for DPO.")
     parser.add_argument("--n-eval", type=int, default=50, help="Sequences sampled for motif_rate.")
-    parser.add_argument("--sft-epochs", type=float, default=60.0, help="SFT training epochs.")
-    parser.add_argument("--dpo-epochs", type=float, default=20.0, help="DPO training epochs.")
+    parser.add_argument("--sft-epochs", type=float, default=100.0, help="SFT training epochs.")
+    parser.add_argument("--dpo-epochs", type=float, default=100.0, help="DPO training epochs.")
     parser.add_argument("--beta", type=float, default=0.05, help="DPO beta (KL penalty strength).")
     parser.add_argument(
         "--n-embd", type=int, default=48, help="GPT-2 embedding size (fixed across k)."

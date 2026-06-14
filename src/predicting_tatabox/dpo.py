@@ -93,8 +93,8 @@ class RunConfig:
     n_sft: int = 200
     n_pref: int = 100
     n_eval: int = 50
-    sft_epochs: float = 60.0
-    dpo_epochs: float = 20.0
+    sft_epochs: float = 100.0
+    dpo_epochs: float = 100.0
     batch_size: int = 8
     sft_learning_rate: float = 5e-4
     dpo_learning_rate: float = 5e-5
