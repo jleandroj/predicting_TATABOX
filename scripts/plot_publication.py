@@ -207,8 +207,7 @@ def fig1_performance(rows: list[dict[str, str]]) -> Path:
     fig_header(
         fig,
         "Tokenizer resolution dominates post-training alignment",
-        "TATA-box motif rate across 24 ablation cells"
-        "  ·  DGX Spark GB10  ·  sft_epochs = dpo_epochs = 100",
+        "TATA-box motif rate across 24 ablation cells  ·  sft_epochs = dpo_epochs = 100",
     )
     fig.subplots_adjust(top=0.84, bottom=0.13, left=0.11, right=0.86)
     return save(fig, "fig1_performance")
@@ -304,8 +303,7 @@ def fig2_param_scale(rows: list[dict[str, str]]) -> Path:
     fig_header(
         fig,
         "Embedding table grows as 4ᵏ · backbone stays fixed",
-        "Parameter composition per tokenizer resolution"
-        "  ·  n_embd = 48, n_layer = 2, n_head = 2",
+        "Parameter composition per tokenizer resolution  ·  n_embd = 48, n_layer = 2, n_head = 2",
     )
     fig.subplots_adjust(top=0.78, bottom=0.15, left=0.01, right=0.99, wspace=0.06)
     return save(fig, "fig2_param_scale")
